@@ -1,0 +1,2 @@
+ docker run -it  -v /Users/oker/workspace-go-build/c++/okx/rapidsnark/zk-email-testdata:/rapidsnark/zk-email-testdata -p 8080:8080 lifei-rapidsnark-test /bin/bash
+ # /rapidsnark/build_nodejs/proverServer 8080 /rapidsnark/zk-email-test/build-one/demo-zk-email-one-final.zkey
