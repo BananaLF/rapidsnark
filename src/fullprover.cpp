@@ -133,7 +133,7 @@ void FullProver::thread_calculateProve() {
 
         std::cout << result << std::endl;
         std::cout << returnCode << std::endl;
-        
+        LOG_TRACE("lifei@@@@")
         // Load witness
         auto wtns = BinFileUtils::openExisting(witnessFile, "wtns", 2);
         auto wtnsHeader = WtnsUtils::loadHeader(wtns.get());

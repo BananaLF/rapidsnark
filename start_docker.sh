@@ -1,2 +1,8 @@
- docker run -it  -v /Users/oker/workspace-go-build/c++/okx/rapidsnark/zk-email-testdata:/rapidsnark/zk-email-testdata -p 8080:8080 lifei-rapidsnark-test /bin/bash
- # /rapidsnark/build_nodejs/proverServer 8080 /rapidsnark/zk-email-test/build-one/demo-zk-email-one-final.zkey
+# build docker if need
+# docker build -t rapaidsnark_server .
+docker run -it \
+  -v ./zk-email-testdata:/root/rapidsnark/zk-email-testdata \
+  -v ./zk-email-testdata/build-one/demo-zk-email-one_cpp/:/root/rapidsnark/build \
+  -p 8080:8080 \
+  rapaidsnark_server \
+  ./proverServer 8080 /root/rapidsnark/zk-email-testdata/build-one/demo-zk-email-one.zkey
