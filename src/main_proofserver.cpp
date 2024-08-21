@@ -3,10 +3,12 @@
 #include "proverapi.hpp"
 #include "fullprover.hpp"
 #include "logger.hpp"
+#include <filesystem>
 
 using namespace CPlusPlusLogging;
 using namespace Pistache;
 using namespace Pistache::Rest;
+namespace fs = std::filesystem;
 
 int main(int argc, char **argv) {
     if (argc < 3) {
@@ -37,11 +39,23 @@ int main(int argc, char **argv) {
     Routes::Post(router, "/start", Routes::bind(&ProverAPI::postStart, &proverAPI));
     Routes::Post(router, "/stop", Routes::bind(&ProverAPI::postStop, &proverAPI));
     Routes::Post(router, "/input/:circuit", Routes::bind(&ProverAPI::postInput, &proverAPI));
-    Routes::Post(router, "/generate_proof/:circuit/:proof_id", Routes::bind(&ProverAPI::postGenerateProof, &proverAPI));
     Routes::Post(router, "/get_proof/:proof_id", Routes::bind(&ProverAPI::postGetProof, &proverAPI));
     Routes::Post(router, "/cancel", Routes::bind(&ProverAPI::postCancel, &proverAPI));
     server.setHandler(router.handler());
     std::string serverReady("Server ready on port " + std::to_string(port) + "...");
     LOG_INFO(serverReady);
+
+    try {
+        std::string temp_proof_path = "./build/temp_proof";
+        // create ./build/temp_proof
+        if (fs::create_directory("./build/temp_proof")) {
+            std::cout << "Directory ./build/temp_proof created successfully: " << temp_proof_path << std::endl;
+        } else {
+            std::cout << "Directory ./build/temp_proof already exists " << temp_proof_path << std::endl;
+        }
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+
     server.serve();
 }

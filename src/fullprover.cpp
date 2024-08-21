@@ -6,6 +6,7 @@
 #include <ctime>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 #include "fullprover.hpp"
 #include "fr.hpp"
@@ -14,6 +15,7 @@
 #include "wtns_utils.hpp"
 
 using namespace CPlusPlusLogging;
+namespace fs = std::filesystem;
 
 std::string getfilename(std::string path)
 {
@@ -78,6 +80,13 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
     if (status == busy) {
         LOG_INFO("start prov busy");
         return ErrorResponse("prover is busy");
+    }
+    json reduceResult = reduce_temp_file();
+    if (reduceResult["code"] == 1) {
+        LOG_ERROR("reduce_temp_file failed");
+        std::string errString = reduceResult.dump(4);
+        LOG_ERROR(errString);
+        return reduceResult;
     }
     LOG_INFO("start prove success");
     pendingInput = input;
@@ -177,10 +186,10 @@ void FullProver::thread_calculateProve() {
        
 
         // wirte proofResult.json
-        json proofResult = SuccessGenerateProof(executingProofId,proof,pubData);
+        json proofResult = SuccessGenerateProof(executingProofId,proof,pubData);   
         std::ofstream proofResultFile("./build/temp_proof/" + executingProofId + ".json");
-        file << proofResult;
-        file.close();
+        proofResultFile << proofResult.dump(4);
+        proofResultFile.close();
 
         calcFinished();
     } catch (std::runtime_error e) {
@@ -259,6 +268,20 @@ json FullProver::getStatus() {
     LOG_TRACE("FullProver::getStatus end");
     return st;
 }
+
+json FullProver::getProof(std::string proofId) {
+    std::ifstream file("./build/temp_proof/" + proofId + ".json");
+
+    if (!file.is_open()) {
+        return ErrorResponse("can not find proofId: " + proofId);
+    }
+
+    json result;
+    file >> result; 
+    file.close();
+    // reduce_temp_proof();
+    return result;
+}
  
 json ErrorResponse(std::string msg) {
     json err;
@@ -271,6 +294,7 @@ json ErrorResponse(std::string msg) {
 json SuccessStatus(std::string status) {
     json result;
     result["code"] = 0;
+    result["msg"] = "get status success";
     result["status"] = status;
 
     return result;
@@ -279,6 +303,7 @@ json SuccessStatus(std::string status) {
 json SuccessStartPove(std::string proofId) {
     json result;
     result["code"] = 0;
+    result["msg"] = "start prove success";
     result["proof_id"] = proofId;
 
     return result;
@@ -298,4 +323,32 @@ int get_time() {
     std::time_t unix_timestamp = std::chrono::system_clock::to_time_t(now);
     int timestamp_as_int = static_cast<int>(unix_timestamp);
     return timestamp_as_int;
+}
+
+json reduce_temp_file() {
+    std::string path = "./build/temp_proof/"; 
+
+    try {
+        // check directory is exist
+        if (!fs::exists(path) || !fs::is_directory(path)) {
+             return ErrorResponse("prover server is wrong,beacause directory ./build/temp_proof is not exist");
+        }
+        LOG_INFO("reduce_temp_proof");
+        std::vector<std::string> filenames;
+        for (const auto& entry : fs::recursive_directory_iterator(path)) {
+            if (fs::is_regular_file(entry.path())) {
+                filenames.push_back(entry.path().string());
+            }
+        }
+        std::sort(filenames.begin(), filenames.end());
+        if (filenames.size() > 10) {
+            fs::remove(filenames.at(0));
+        }
+    } catch (const fs::filesystem_error& e) {
+        std::string error_message = e.what();
+        std::string errString = "prover server is wrong,beacause directory. Filesystem error: " + error_message;
+        return ErrorResponse(errString);
+    }
+
+    return SuccessStatus("reduce file success");
 }

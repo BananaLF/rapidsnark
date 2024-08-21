@@ -17,6 +17,5 @@ public:
     void getConfig(const Rest::Request& request, Http::ResponseWriter response);
     void postConfig(const Rest::Request& request, Http::ResponseWriter response);
 
-    void postGenerateProof(const Rest::Request& request, Http::ResponseWriter response);
     void postGetProof(const Rest::Request& request, Http::ResponseWriter response);
 };

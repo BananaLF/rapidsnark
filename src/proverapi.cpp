@@ -15,7 +15,7 @@ void ProverAPI::postInput(const Rest::Request& request, Http::ResponseWriter res
     
     int current_time = get_time();
     std::string proofId = "proof-" + std::to_string(current_time);
-    std::string log_str = circuit + "-"+ proofId);
+    std::string log_str = circuit + "-"+ proofId;
     LOG_TRACE(log_str);
     
     json prover_result = fullProver.startProve(request.body(), circuit, proofId);
@@ -50,5 +50,7 @@ void ProverAPI::postConfig(const Rest::Request& request, Http::ResponseWriter re
 }
 
 void ProverAPI::postGetProof(const Rest::Request& request, Http::ResponseWriter response) {
-    response.send(Http::Code::Ok);
+    std::string proofId(request.param(":proof_id").as<std::string>());
+    json result = fullProver.getProof(proofId);
+    response.send(Http::Code::Ok, result.dump(), MIME(Application, Json));
 }

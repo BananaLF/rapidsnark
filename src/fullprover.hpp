@@ -47,6 +47,7 @@ public:
     void abort();
     json getStatus();
     std::string &getErrString() { return errString; };
+    json getProof(std::string proofId);
 
 
 };
@@ -56,5 +57,6 @@ json SuccessStartPove(std::string proofId);
 json SuccessGenerateProof(std::string proofId,json proof,json pubData);
 int get_time();
 json SuccessStatus(std::string status);
+json reduce_temp_file();
 
 #endif // FULLPROVER_H
