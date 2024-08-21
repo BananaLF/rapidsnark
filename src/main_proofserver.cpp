@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     }
 
     Logger::getInstance()->enableConsoleLogging();
-    Logger::getInstance()->updateLogLevel(LOG_LEVEL_DEBUG);
+    Logger::getInstance()->updateLogLevel(LOG_LEVEL_INFO);
     LOG_INFO("Initializing server...");
     int port = std::stoi(argv[1]); // parse port
     // parse the zkeys
@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
     Routes::Post(router, "/start", Routes::bind(&ProverAPI::postStart, &proverAPI));
     Routes::Post(router, "/stop", Routes::bind(&ProverAPI::postStop, &proverAPI));
     Routes::Post(router, "/input/:circuit", Routes::bind(&ProverAPI::postInput, &proverAPI));
+    Routes::Post(router, "/generate_proof/:circuit/:proof_id", Routes::bind(&ProverAPI::postGenerateProof, &proverAPI));
+    Routes::Post(router, "/get_proof/:proof_id", Routes::bind(&ProverAPI::postGetProof, &proverAPI));
     Routes::Post(router, "/cancel", Routes::bind(&ProverAPI::postCancel, &proverAPI));
     server.setHandler(router.handler());
     std::string serverReady("Server ready on port " + std::to_string(port) + "...");

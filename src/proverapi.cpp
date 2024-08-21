@@ -1,6 +1,10 @@
 #include "proverapi.hpp"
 #include "nlohmann/json.hpp"
 #include "logger.hpp"
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iostream>
 
 using namespace Pistache;
 using json = nlohmann::json;
@@ -8,9 +12,14 @@ using json = nlohmann::json;
 
 void ProverAPI::postInput(const Rest::Request& request, Http::ResponseWriter response) {
     std::string circuit(request.param(":circuit").as<std::string>());
-    LOG_TRACE(circuit);
-    fullProver.startProve(request.body(), circuit);
-    response.send(Http::Code::Ok);
+    
+    int current_time = get_time();
+    std::string proofId = "proof-" + std::to_string(current_time);
+    std::string log_str = circuit + "-"+ proofId);
+    LOG_TRACE(log_str);
+    
+    json prover_result = fullProver.startProve(request.body(), circuit, proofId);
+    response.send(Http::Code::Ok, prover_result.dump(), MIME(Application, Json));
 }
 
 void ProverAPI::postCancel(const Rest::Request& request, Http::ResponseWriter response) {
@@ -40,3 +49,6 @@ void ProverAPI::postConfig(const Rest::Request& request, Http::ResponseWriter re
     response.send(Http::Code::Ok);
 }
 
+void ProverAPI::postGetProof(const Rest::Request& request, Http::ResponseWriter response) {
+    response.send(Http::Code::Ok);
+}

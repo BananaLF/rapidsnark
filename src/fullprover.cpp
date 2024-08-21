@@ -2,6 +2,10 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iostream>
 
 #include "fullprover.hpp"
 #include "fr.hpp"
@@ -66,21 +70,26 @@ FullProver::~FullProver() {
     mpz_clear(altBbn128r);
 }
 
-void FullProver::startProve(std::string input, std::string circuit) {
+json FullProver::startProve(std::string input, std::string circuit, std::string proofId) {
     LOG_TRACE("FullProver::startProve begin");
     LOG_DEBUG(input);
     std::lock_guard<std::mutex> guard(mtx);
+    LOG_INFO("start prove");
+    if (status == busy) {
+        LOG_INFO("start prov busy");
+        return ErrorResponse("prover is busy");
+    }
+    LOG_INFO("start prove success");
     pendingInput = input;
     pendingCircuit = circuit;
-    if (status == busy) {
-        abort();
-    }
-    checkPending();
+    json result = checkPending(proofId);
     LOG_TRACE("FullProver::startProve end");
+    return result;
 }
 
-void FullProver::checkPending() {
+json FullProver::checkPending(std::string proofId) {
     LOG_TRACE("FullProver::checkPending begin");
+    json result;
     if (status != busy) {
         std::string input = pendingInput;
         std::string circuit = pendingCircuit;
@@ -91,13 +100,22 @@ void FullProver::checkPending() {
             pendingInput = "";
             pendingCircuit = "";
             errString = "";
+            executingProofId = proofId;
             canceled = false;
             proof = nlohmann::detail::value_t::null;
             std::thread th(&FullProver::thread_calculateProve, this);
             th.detach();
+            result = SuccessStartPove(proofId);
+            LOG_TRACE("FullProver::checkPending end");
+        } else {
+            LOG_TRACE("FullProver::checkPending end");
+            result = ErrorResponse("input and circuit is empty");
         }
+    } else {
+        LOG_TRACE("FullProver::checkPending end");
+        result = ErrorResponse("checkPending prover is busy");
     }
-    LOG_TRACE("FullProver::checkPending end");
+    return result;
 }
 
 void FullProver::thread_calculateProve() {
@@ -158,6 +176,12 @@ void FullProver::thread_calculateProve() {
         }
        
 
+        // wirte proofResult.json
+        json proofResult = SuccessGenerateProof(executingProofId,proof,pubData);
+        std::ofstream proofResultFile("./build/temp_proof/" + executingProofId + ".json");
+        file << proofResult;
+        file.close();
+
         calcFinished();
     } catch (std::runtime_error e) {
         if (!isCanceled()) {
@@ -185,7 +209,7 @@ void FullProver::calcFinished() {
     }
     canceled = false;
     executingInput = "";
-    checkPending();
+    checkPending(executingProofId);
     LOG_TRACE("FullProver::calcFinished end");
 }
 
@@ -217,23 +241,61 @@ json FullProver::getStatus() {
     json st;
     if (status == ready) {
         LOG_TRACE("ready");
-        st["status"] = "ready";
+        st = SuccessStatus("ready");
     } else if (status == aborted) {
         LOG_TRACE("aborted");
-        st["status"] = "aborted";
+        st = SuccessStatus("aborted");
     } else if (status == failed) {
         LOG_TRACE("failed");
-        st["status"] = "failed";
-        st["error"] = errString;
+        st = ErrorResponse(errString);
     } else if (status == success) {
         LOG_TRACE("success");
+        st = SuccessGenerateProof(executingProofId,proof,pubData);
         st["status"] = "success";
-        st["proof"] = proof.dump();
-        st["pubData"] = pubData.dump();
     } else if (status == busy) {
         LOG_TRACE("busy");
-        st["status"] = "busy";
+        st = SuccessStatus("busy");
     }
     LOG_TRACE("FullProver::getStatus end");
     return st;
+}
+ 
+json ErrorResponse(std::string msg) {
+    json err;
+    err["code"] = 1;
+    err["msg"] = msg;
+    
+    return err;
+}
+
+json SuccessStatus(std::string status) {
+    json result;
+    result["code"] = 0;
+    result["status"] = status;
+
+    return result;
+}
+
+json SuccessStartPove(std::string proofId) {
+    json result;
+    result["code"] = 0;
+    result["proof_id"] = proofId;
+
+    return result;
+}
+
+json SuccessGenerateProof(std::string proofId,json proof,json pubData) {
+    json result;
+    result["code"] = 0;
+    result["proof_id"] = proofId;
+    result["proof"] = proof;
+    result["pubData"] = pubData;
+    return result;
+}
+
+int get_time() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t unix_timestamp = std::chrono::system_clock::to_time_t(now);
+    int timestamp_as_int = static_cast<int>(unix_timestamp);
+    return timestamp_as_int;
 }
