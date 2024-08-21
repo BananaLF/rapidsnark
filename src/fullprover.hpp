@@ -52,11 +52,4 @@ public:
 
 };
 
-json ErrorResponse(std::string msg);
-json SuccessStartPove(std::string proofId);
-json SuccessGenerateProof(std::string proofId,json proof,json pubData);
-int get_time();
-json SuccessStatus(std::string status);
-json reduce_temp_file();
-
 #endif // FULLPROVER_H

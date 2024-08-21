@@ -3,6 +3,7 @@
 #include "proverapi.hpp"
 #include "fullprover.hpp"
 #include "logger.hpp"
+#include "temp_file.hpp"
 #include <filesystem>
 
 using namespace CPlusPlusLogging;
@@ -45,17 +46,7 @@ int main(int argc, char **argv) {
     std::string serverReady("Server ready on port " + std::to_string(port) + "...");
     LOG_INFO(serverReady);
 
-    try {
-        std::string temp_proof_path = "./build/temp_proof";
-        // create ./build/temp_proof
-        if (fs::create_directory("./build/temp_proof")) {
-            std::cout << "Directory ./build/temp_proof created successfully: " << temp_proof_path << std::endl;
-        } else {
-            std::cout << "Directory ./build/temp_proof already exists " << temp_proof_path << std::endl;
-        }
-    } catch (const fs::filesystem_error& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
+    try_create_temp_dir();
 
     server.serve();
 }

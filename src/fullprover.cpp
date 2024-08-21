@@ -13,6 +13,8 @@
 
 #include "logger.hpp"
 #include "wtns_utils.hpp"
+#include "response_util.hpp"
+#include "temp_file.hpp"
 
 using namespace CPlusPlusLogging;
 namespace fs = std::filesystem;
@@ -187,9 +189,7 @@ void FullProver::thread_calculateProve() {
 
         // wirte proofResult.json
         json proofResult = SuccessGenerateProof(executingProofId,proof,pubData);   
-        std::ofstream proofResultFile("./build/temp_proof/" + executingProofId + ".json");
-        proofResultFile << proofResult.dump(4);
-        proofResultFile.close();
+        writ_temp_file(proofResult,executingProofId);
 
         calcFinished();
     } catch (std::runtime_error e) {
@@ -264,6 +264,7 @@ json FullProver::getStatus() {
     } else if (status == busy) {
         LOG_TRACE("busy");
         st = SuccessStatus("busy");
+        st["current_proof"] = executingProofId;
     }
     LOG_TRACE("FullProver::getStatus end");
     return st;
@@ -281,74 +282,4 @@ json FullProver::getProof(std::string proofId) {
     file.close();
     // reduce_temp_proof();
     return result;
-}
- 
-json ErrorResponse(std::string msg) {
-    json err;
-    err["code"] = 1;
-    err["msg"] = msg;
-    
-    return err;
-}
-
-json SuccessStatus(std::string status) {
-    json result;
-    result["code"] = 0;
-    result["msg"] = "get status success";
-    result["status"] = status;
-
-    return result;
-}
-
-json SuccessStartPove(std::string proofId) {
-    json result;
-    result["code"] = 0;
-    result["msg"] = "start prove success";
-    result["proof_id"] = proofId;
-
-    return result;
-}
-
-json SuccessGenerateProof(std::string proofId,json proof,json pubData) {
-    json result;
-    result["code"] = 0;
-    result["proof_id"] = proofId;
-    result["proof"] = proof;
-    result["pubData"] = pubData;
-    return result;
-}
-
-int get_time() {
-    auto now = std::chrono::system_clock::now();
-    std::time_t unix_timestamp = std::chrono::system_clock::to_time_t(now);
-    int timestamp_as_int = static_cast<int>(unix_timestamp);
-    return timestamp_as_int;
-}
-
-json reduce_temp_file() {
-    std::string path = "./build/temp_proof/"; 
-
-    try {
-        // check directory is exist
-        if (!fs::exists(path) || !fs::is_directory(path)) {
-             return ErrorResponse("prover server is wrong,beacause directory ./build/temp_proof is not exist");
-        }
-        LOG_INFO("reduce_temp_proof");
-        std::vector<std::string> filenames;
-        for (const auto& entry : fs::recursive_directory_iterator(path)) {
-            if (fs::is_regular_file(entry.path())) {
-                filenames.push_back(entry.path().string());
-            }
-        }
-        std::sort(filenames.begin(), filenames.end());
-        if (filenames.size() > 10) {
-            fs::remove(filenames.at(0));
-        }
-    } catch (const fs::filesystem_error& e) {
-        std::string error_message = e.what();
-        std::string errString = "prover server is wrong,beacause directory. Filesystem error: " + error_message;
-        return ErrorResponse(errString);
-    }
-
-    return SuccessStatus("reduce file success");
 }
