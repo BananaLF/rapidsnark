@@ -211,7 +211,7 @@ void FullProver::thread_calculateProve() {
         if (!isCanceled()) {
             LOG_TRACE("no cancel");
             errString = e.what();
-            json proofResult = ErrorResponse(errString);
+            json proofResult = ErrorGenerateProof(executingProofId,errString);
             writ_temp_file(proofResult,executingProofId);
         }
         LOG_TRACE(e.what());
@@ -222,7 +222,7 @@ void FullProver::thread_calculateProve() {
         if (!isCanceled()) {
             LOG_TRACE("no cancel");
             errString = e.what();
-            json proofResult = ErrorResponse(errString);
+            json proofResult = ErrorGenerateProof(executingProofId,errString);
             writ_temp_file(proofResult,executingProofId);
         }
         LOG_TRACE(e.what());
@@ -287,7 +287,7 @@ json FullProver::getStatus() {
         st = SuccessStatus("aborted");
     } else if (status == failed) {
         LOG_TRACE("failed");
-        st = ErrorResponse(errString);
+        st = ErrorGenerateProof(executingProofId,errString);
     } else if (status == success) {
         LOG_TRACE("success");
         st = SuccessGenerateProof(executingProofId,proof,pubData);

@@ -37,6 +37,12 @@ json SuccessGenerateProof(std::string proofId,json proof,json pubData) {
     return result;
 }
 
+json ErrorGenerateProof(std::string proofId,std::string msg) {
+    json result = ErrorResponse(msg);
+    result["proof_id"] = proofId;
+    return result;
+}
+
 int get_time() {
     auto now = std::chrono::system_clock::now();
     std::time_t unix_timestamp = std::chrono::system_clock::to_time_t(now);
