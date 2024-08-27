@@ -1,9 +1,21 @@
 #docker build -t rapaidsnark_server .
-FROM ubuntu:22.04 AS build-env
+FROM recovery_setup:0.1 AS build-env
 
-RUN apt update && apt install -y git build-essential cmake libgmp-dev libsodium-dev nasm curl m4 nodejs npm
-RUN git clone -b sunstrider-supportserver https://github.com/BananaLF/rapidsnark.git
 WORKDIR /rapidsnark
+COPY ./build ./build
+COPY ./.git ./.git
+COPY ./cmake ./cmake
+COPY ./service ./service
+COPY ./src ./src
+COPY ./testdata ./testdata
+COPY ./tools ./tools
+COPY ./build_gmp.sh ./build_gmp.sh
+COPY ./CMakeLists.txt ./CMakeLists.txt
+COPY ./Makefile ./Makefile
+COPY ./package-lock.json ./package-lock.json
+COPY ./package.json ./package.json
+COPY ./tasksfile.js ./tasksfile.js
+COPY ./.gitmodules ./.gitmodules
 
 RUN npm install
 RUN git submodule init
@@ -17,6 +29,9 @@ FROM ubuntu:22.04
 WORKDIR /root/rapidsnark
 
 ENV LD_LIBRARY_PATH=/root/rapidsnark/depends/pistache/build/src
+RUN mkdir -p /root/rapidsnark/build
+COPY --from=build-env /circuits/build/email_recovery_cpp/email_recovery /root/rapidsnark/build/email_recovery
+COPY --from=build-env /circuits/build/email_recovery_cpp/email_recovery.dat /root/rapidsnark/build/email_recovery.dat
 COPY --from=build-env /rapidsnark/build_nodejs/proverServer /root/rapidsnark/proverServer
 COPY --from=build-env /rapidsnark/depends/pistache/build/src /root/rapidsnark/depends/pistache/build/src
 COPY --from=build-env /lib/x86_64-linux-gnu/libgomp.so.1 /lib/x86_64-linux-gnu/libgomp.so.1
