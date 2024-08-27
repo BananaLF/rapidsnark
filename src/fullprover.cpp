@@ -207,9 +207,13 @@ void FullProver::thread_calculateProve() {
 
         calcFinished();
     } catch (std::runtime_error e) {
+        LOG_INFO("catch get runtime err");
         if (!isCanceled()) {
+            LOG_INFO("no cacel");
             errString = e.what();
         }
+        LOG_INFO(e.what());
+        LOG_INFO("catch end");
         calcFinished();
     } 
 
