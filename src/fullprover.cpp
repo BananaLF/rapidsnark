@@ -169,7 +169,9 @@ void FullProver::thread_calculateProve() {
             std::cerr << "circuit:" << circuit << " proof_id:"<< executingCircuit << " generate witness failed." << std::endl;
             std::cerr << "result: " << result << std::endl;
             std::cerr << "returnCode: " << returnCode << std::endl;
-            std::string errMsg= "generate witness failed. returnCode: " + std::to_string(returnCode) + " result:" + std::to_string(result);
+            std::ostringstream oss;
+            oss << "generate witness failed. returnCode: " << returnCode << " result: " << result;
+            std::string errMsg= oss.str();
             throw std::invalid_argument(errMsg);
         }
         
