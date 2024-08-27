@@ -92,7 +92,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
     }
     LOG_INFO("start prove success");
     if (zkHeaders.find(circuit) != zkHeaders.end()) {
-        std::string errString = circuit + "is not exist in this prover server"l
+        std::string errString = circuit + "is not exist in this prover server";
         return ErrorResponse(errString);    
     }
     pendingInput = input;
