@@ -91,6 +91,10 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
         return reduceResult;
     }
     LOG_INFO("start prove success");
+    if (zkHeaders.find(circuit) != zkHeaders.end()) {
+        std::string errString = circuit + "is not exist in this prover server"l
+        return ErrorResponse(errString);    
+    }
     pendingInput = input;
     pendingCircuit = circuit;
     json result = checkPending(proofId);
@@ -153,6 +157,7 @@ void FullProver::thread_calculateProve() {
         if (!pipe)
         {
             std::cerr << "Couldn't start command." << std::endl;
+            throw std::invalid_argument( "Couldn't start witness command." );
         }
         while (fgets(buffer.data(), 128, pipe) != NULL) {
             // std::cout << "Reading..." << std::endl;
