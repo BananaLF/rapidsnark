@@ -165,7 +165,7 @@ void FullProver::thread_calculateProve() {
         }
         auto returnCode = pclose(pipe);
 
-        if (exitStatus != 0) { 
+        if (returnCode != 0) { 
             std::cerr << "circuit:" << circuit << " proof_id:"<< executingCircuit << " generate witness failed." << std::endl;
             std::cerr << "result: " << result << std::endl;
             std::cerr << "returnCode: " << returnCode << std::endl;
