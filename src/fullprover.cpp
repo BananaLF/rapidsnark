@@ -92,7 +92,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
     }
     LOG_INFO("start prove success");
     if (zkHeaders.find(circuit) == zkHeaders.end()) {
-        std::string errString = circuit + "is not exist in this prover server";
+        std::string errString = circuit + " is not exist in this prover server";
         return ErrorResponse(errString);    
     }
     pendingInput = input;
@@ -164,9 +164,16 @@ void FullProver::thread_calculateProve() {
             result += buffer.data();
         }
         auto returnCode = pclose(pipe);
+
+        if (exitStatus != 0) { 
+            std::cerr << "circuit:" << circuit << " proof_id:"<< executingCircuit << " generate witness failed." << std::endl;
+            std::cerr << "result: " << result << std::endl;
+            std::cerr << "returnCode: " << returnCode << std::endl;
+            std::string errMsg= "generate witness failed. returnCode: " +returnCode + " result:" + result;
+            throw std::invalid_argument(errMsg);
+        }
         
-        std::cout << "result:" << result << std::endl;
-        std::cout << "returnCode:" << returnCode << std::endl;
+        
         // Load witness
         auto wtns = BinFileUtils::openExisting(witnessFile, "wtns", 2);
         auto wtnsHeader = WtnsUtils::loadHeader(wtns.get());
