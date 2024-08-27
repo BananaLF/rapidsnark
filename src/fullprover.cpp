@@ -164,9 +164,9 @@ void FullProver::thread_calculateProve() {
             result += buffer.data();
         }
         auto returnCode = pclose(pipe);
-
-        std::cout << result << std::endl;
-        std::cout << returnCode << std::endl;
+        
+        std::cout << "result:" << result << std::endl;
+        std::cout << "returnCode:" << returnCode << std::endl;
         // Load witness
         auto wtns = BinFileUtils::openExisting(witnessFile, "wtns", 2);
         auto wtnsHeader = WtnsUtils::loadHeader(wtns.get());
