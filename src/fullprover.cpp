@@ -207,22 +207,26 @@ void FullProver::thread_calculateProve() {
 
         calcFinished();
     } catch (const std::invalid_argument& e) {  // 捕获 std::invalid_argument
-        LOG_INFO("catch get runtime err");
+        LOG_TRACE("invalid_argument catch get runtime err");
         if (!isCanceled()) {
-            LOG_INFO("no cacel");
+            LOG_TRACE("no cancel");
             errString = e.what();
+            json proofResult = ErrorResponse(errString);
+            writ_temp_file(proofResult,executingProofId);
         }
-        LOG_INFO(e.what());
-        LOG_INFO("catch end");
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
         calcFinished();
     } catch (std::runtime_error& e) {
-        LOG_INFO("catch get runtime err");
+        LOG_TRACE("runtime_error catch get runtime err");
         if (!isCanceled()) {
-            LOG_INFO("no cacel");
+            LOG_TRACE("no cancel");
             errString = e.what();
+            json proofResult = ErrorResponse(errString);
+            writ_temp_file(proofResult,executingProofId);
         }
-        LOG_INFO(e.what());
-        LOG_INFO("catch end");
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
         calcFinished();
     } 
 
