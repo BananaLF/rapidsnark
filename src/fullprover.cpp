@@ -228,7 +228,41 @@ void FullProver::thread_calculateProve() {
         LOG_TRACE(e.what());
         LOG_TRACE("catch end");
         calcFinished();
-    } 
+    } catch (const json::parse_error& e) {
+        LOG_TRACE("parse_error catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            errString = e.what();
+            json proofResult = ErrorGenerateProof(executingProofId,errString);
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
+        calcFinished();
+     } catch (const std::exception& e) {
+        LOG_TRACE("exception catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            errString = e.what();
+            json proofResult = ErrorGenerateProof(executingProofId,"exception"+errString);
+            proofResult["code"] = 2;//must be handle it
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
+        calcFinished();
+    } catch (...) {
+       LOG_TRACE("exception catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            json proofResult = ErrorGenerateProof(executingProofId,"occur unknown error");
+            proofResult["code"] = 2;//must be handle it
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
+        calcFinished();
+    }
 
     LOG_TRACE("FullProver::thread_calculateProve end");
 }
