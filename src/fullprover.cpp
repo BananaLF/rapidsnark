@@ -259,7 +259,6 @@ void FullProver::thread_calculateProve() {
             proofResult["code"] = 2;//must be handle it
             writ_temp_file(proofResult,executingProofId);
         }
-        LOG_TRACE(e.what());
         LOG_TRACE("catch end");
         calcFinished();
     }

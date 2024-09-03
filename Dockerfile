@@ -1,5 +1,5 @@
 #docker build -t rapaidsnark_server .
-FROM recovery_setup:0.1 AS build-env
+FROM zk_email_base:0.1 AS build-env
 
 WORKDIR /rapidsnark
 COPY ./build ./build
@@ -30,8 +30,6 @@ WORKDIR /root/rapidsnark
 
 ENV LD_LIBRARY_PATH=/root/rapidsnark/depends/pistache/build/src
 RUN mkdir -p /root/rapidsnark/build
-COPY --from=build-env /circuits/build/email_recovery_cpp/email_recovery /root/rapidsnark/build/email_recovery
-COPY --from=build-env /circuits/build/email_recovery_cpp/email_recovery.dat /root/rapidsnark/build/email_recovery.dat
 COPY --from=build-env /rapidsnark/build_nodejs/proverServer /root/rapidsnark/proverServer
 COPY --from=build-env /rapidsnark/depends/pistache/build/src /root/rapidsnark/depends/pistache/build/src
 COPY --from=build-env /lib/x86_64-linux-gnu/libgomp.so.1 /lib/x86_64-linux-gnu/libgomp.so.1
