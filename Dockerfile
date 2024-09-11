@@ -1,5 +1,10 @@
 #docker build -t rapaidsnark_server .
-FROM zk_email_base:0.1 AS build-env
+FROM ubuntu:22.04 AS build-env
+
+RUN apt-get update && apt-get install -y git build-essential cmake libgmp-dev libsodium-dev nasm curl m4 sudo libcurl4-openssl-dev zlib1g-dev
+RUN curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash - && apt-get install -y nodejs    
+# generate nacos
+RUN git clone -b v1.1.0 https://github.com/nacos-group/nacos-sdk-cpp.git && cd nacos-sdk-cpp && cmake . && make && make install
 
 WORKDIR /rapidsnark
 COPY ./build ./build
@@ -29,6 +34,7 @@ FROM ubuntu:22.04
 WORKDIR /root/rapidsnark
 
 ENV LD_LIBRARY_PATH=/root/rapidsnark/depends/pistache/build/src
+## RUN echo "/root/rapidsnark/depends/pistache/build/src" > /etc/ld.so.conf.d/rapidsnark_libs.conf
 RUN mkdir -p /root/rapidsnark/build
 COPY --from=build-env /rapidsnark/build_nodejs/proverServer /root/rapidsnark/proverServer
 COPY --from=build-env /rapidsnark/depends/pistache/build/src /root/rapidsnark/depends/pistache/build/src

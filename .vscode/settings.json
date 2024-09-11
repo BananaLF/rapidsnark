@@ -94,7 +94,21 @@
     "__nullptr": "cpp",
     "__string": "cpp",
     "concepts": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "any": "cpp",
+    "charconv": "cpp",
+    "codecvt": "cpp",
+    "format": "cpp",
+    "numbers": "cpp",
+    "queue": "cpp",
+    "semaphore": "cpp",
+    "span": "cpp",
+    "typeindex": "cpp",
+    "hash_map": "cpp",
+    "source_location": "cpp",
+    "stdfloat": "cpp",
+    "stop_token": "cpp",
+    "text_encoding": "cpp"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }

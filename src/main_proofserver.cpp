@@ -4,6 +4,7 @@
 #include "fullprover.hpp"
 #include "logger.hpp"
 #include "temp_file.hpp"
+#include "nacos.hpp"
 #include <filesystem>
 
 using namespace CPlusPlusLogging;
@@ -28,6 +29,8 @@ int main(int argc, char **argv) {
         zkeyFileNames[i] = argv[i + 2];
     }
 
+    NacosService nacosService;
+    nacosService.registerInstance();
     FullProver fullProver(zkeyFileNames, argc - 2);
     ProverAPI proverAPI(fullProver);
     Address addr(Ipv4::any(), Port(port));

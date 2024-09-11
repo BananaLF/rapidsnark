@@ -46,6 +46,7 @@ function buildProverServer() {
       " -I../depends/pistache/include" +
       " -I../depends/json/single_include" +
       " -I../depends/ffiasm/c" +
+      " -I/usr/local/include/nacos/" +
       " ../src/main_proofserver.cpp" +
       " ../src/proverapi.cpp" +
       " ../src/fullprover.cpp" +
@@ -56,6 +57,7 @@ function buildProverServer() {
       " ../src/logger.cpp" +
       " ../src/response_util.cpp" +
       " ../src/temp_file.cpp" +
+      " ../src/nacos.cpp" +
       " ../depends/ffiasm/c/misc.cpp" +
       " ../depends/ffiasm/c/naf.cpp" +
       " ../depends/ffiasm/c/splitparstr.cpp" +
@@ -65,6 +67,7 @@ function buildProverServer() {
       " fr.cpp" +
       " fr.o" +
       " -L../depends/pistache/build/src -lpistache" +
+      " -lnacos-cli" +
       " -o proverServer" +
       " -fmax-errors=5 -std=c++17 -DUSE_OPENMP -DUSE_ASM -DARCH_X86_64 -DUSE_LOGGER -pthread -lgmp -lsodium -fopenmp -O3",
     { cwd: "build_nodejs", nopipe: true }
@@ -79,6 +82,7 @@ function buildProverServerSingleThread() {
       " -I../depends/pistache/include" +
       " -I../depends/json/single_include" +
       " -I../depends/ffiasm/c" +
+      " -I/usr/local/include/nacos/" +
       " ../src/main_proofserver.cpp" +
       " ../src/proverapi.cpp" +
       " ../src/fullprover.cpp" +
@@ -89,6 +93,7 @@ function buildProverServerSingleThread() {
       " ../src/logger.cpp" +
       " ../src/response_util.cpp" +
       " ../src/temp_file.cpp" +
+      " ../src/nacos.cpp" +
       " ../depends/ffiasm/c/misc.cpp" +
       " ../depends/ffiasm/c/naf.cpp" +
       " ../depends/ffiasm/c/splitparstr.cpp" +
@@ -98,6 +103,7 @@ function buildProverServerSingleThread() {
       " fr.cpp" +
       " fr.o" +
       " -L../depends/pistache/build/src -lpistache" +
+      " -lnacos-cli" +
       " -o proverServerSingleThread" +
       " -fmax-errors=5 -std=c++17 -DUSE_ASM -DARCH_X86_64 -DUSE_LOGGER -lgmp -lsodium -O3",
     { cwd: "build_nodejs", nopipe: true }
