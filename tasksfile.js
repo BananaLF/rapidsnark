@@ -36,6 +36,9 @@ function buildPistache() {
     cwd: "depends/pistache/build",
   });
   sh("make", { cwd: "depends/pistache/build" });
+  sh("cp libpistache.so* /usr/local/lib/", {
+    cwd: "depends/pistache/build/src",
+  });
 }
 
 function buildProverServer() {
@@ -66,7 +69,7 @@ function buildProverServer() {
       " fq.o" +
       " fr.cpp" +
       " fr.o" +
-      " -L../depends/pistache/build/src -lpistache" +
+      " -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lpistache" +
       " -lnacos-cli" +
       " -o proverServer" +
       " -fmax-errors=5 -std=c++17 -DUSE_OPENMP -DUSE_ASM -DARCH_X86_64 -DUSE_LOGGER -pthread -lgmp -lsodium -fopenmp -O3",
@@ -102,7 +105,7 @@ function buildProverServerSingleThread() {
       " fq.o" +
       " fr.cpp" +
       " fr.o" +
-      " -L../depends/pistache/build/src -lpistache" +
+      " -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lpistache" +
       " -lnacos-cli" +
       " -o proverServerSingleThread" +
       " -fmax-errors=5 -std=c++17 -DUSE_ASM -DARCH_X86_64 -DUSE_LOGGER -lgmp -lsodium -O3",

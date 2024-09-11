@@ -5,6 +5,7 @@ using namespace std;
 
 
 class NacosService {
+    bool enableNacos = false;
     std::string nacosServer;
     std::string serviceName;
     std::string clusterName;

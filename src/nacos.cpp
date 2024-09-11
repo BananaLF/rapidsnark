@@ -4,6 +4,7 @@
 #include "Nacos.h"
 
 using namespace nacos;
+const char* ENABLE_RAPIDSNARK_NACOS="ENABLE_RAPIDSNARK_NACOS";
 const char* RAPIDSNARK_NACOS_SERVER="RAPIDSNARK_NACOS_SERVER";
 const char* RAPIDSNARK_NACOS_SERVICE_NAME="RAPIDSNARK_NACOS_SERVICE_NAME";
 const char* RAPIDSNARK_NACOS_INSTANCE_CLUSTER_NAME="RAPIDSNARK_NACOS_INSTANCE_CLUSTER_NAME";
@@ -12,6 +13,15 @@ const char* RAPIDSNARK_NACOS_INSTANCE_PORT="RAPIDSNARK_NACOS_INSTANCE_PORT";
 const char* RAPIDSNARK_NACOS_INSTANCE_ID="RAPIDSNARK_NACOS_INSTANCE_ID";
 const char* RAPIDSNARK_NACOS_INSTANCE_EPHEMERAL="RAPIDSNARK_NACOS_INSTANCE_EPHEMERAL";
 NacosService::NacosService() {
+    const char* envEnableNacos = std::getenv(ENABLE_RAPIDSNARK_NACOS);
+    if (envEnableNacos != nullptr) {
+        this->enableNacos = stringToBool(envEnableNacos);
+    }
+    std::cout << "enable nacos: " << this->enableNacos << std::endl;
+    if (!this->enableNacos) {
+        return;
+    }
+
     const char* envNacosServer = std::getenv(RAPIDSNARK_NACOS_SERVER);
     const char* envNacosSeviceName = std::getenv(RAPIDSNARK_NACOS_SERVICE_NAME);
     const char* envNacosClusterName = std::getenv(RAPIDSNARK_NACOS_INSTANCE_CLUSTER_NAME);
@@ -55,6 +65,9 @@ NacosService::NacosService() {
 NacosService::~NacosService() {}
 
 void NacosService::registerInstance() {
+    if (!this->enableNacos) {
+        return;
+    }
     Properties configProps;
     configProps[PropertyKeyConst::SERVER_ADDR] = this->nacosServer;
     INacosServiceFactory *factory = NacosFactoryFactory::getNacosFactory(configProps);
