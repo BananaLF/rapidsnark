@@ -12,6 +12,7 @@ const char* RAPIDSNARK_NACOS_INSTANCE_IP="MY_POD_IP";
 const char* RAPIDSNARK_NACOS_INSTANCE_PORT="RAPIDSNARK_NACOS_INSTANCE_PORT";
 const char* RAPIDSNARK_NACOS_INSTANCE_ID="RAPIDSNARK_NACOS_INSTANCE_ID";
 const char* RAPIDSNARK_NACOS_INSTANCE_EPHEMERAL="RAPIDSNARK_NACOS_INSTANCE_EPHEMERAL";
+const char* RAPIDSNARK_NACOS_INSTANCE_NAMESAPCE="RAPIDSNARK_NACOS_INSTANCE_NAMESAPCE";
 NacosService::NacosService() {
     const char* envEnableNacos = std::getenv(ENABLE_RAPIDSNARK_NACOS);
     if (envEnableNacos != nullptr) {
@@ -29,6 +30,7 @@ NacosService::NacosService() {
     const char* envNacosInstancePort = std::getenv(RAPIDSNARK_NACOS_INSTANCE_PORT);
     const char* envNacosInstanceID = std::getenv(RAPIDSNARK_NACOS_INSTANCE_ID);
     const char* envNacosInstanceEphemeral = std::getenv(RAPIDSNARK_NACOS_INSTANCE_EPHEMERAL);
+    const char* envNacosInstanceNamespace = std::getenv(RAPIDSNARK_NACOS_INSTANCE_NAMESAPCE);
     
     if (envNacosServer == nullptr) {
         std::cerr << "env "<< RAPIDSNARK_NACOS_SERVER << " is empty" << std::endl;
@@ -51,6 +53,9 @@ NacosService::NacosService() {
     } else if (envNacosInstanceEphemeral == nullptr ) {
         std::cerr << "env "<< RAPIDSNARK_NACOS_INSTANCE_EPHEMERAL << " is empty" << std::endl;
         std::exit(EXIT_FAILURE);
+    } else if (envNacosInstanceNamespace == nullptr ) {
+        std::cerr << "env "<< RAPIDSNARK_NACOS_INSTANCE_NAMESAPCE << " is empty" << std::endl;
+        std::exit(EXIT_FAILURE);
     } 
 
     this->nacosServer = envNacosServer;
@@ -60,6 +65,7 @@ NacosService::NacosService() {
     this->port= std::stoi(envNacosInstancePort);
     this->instanceId = envNacosInstanceID;
     this->ephemeral = stringToBool(envNacosInstanceEphemeral);
+    this->namespaceData = envNacosInstanceNamespace;
 }
 
 NacosService::~NacosService() {}
@@ -70,6 +76,7 @@ void NacosService::registerInstance() {
     }
     Properties configProps;
     configProps[PropertyKeyConst::SERVER_ADDR] = this->nacosServer;
+    configProps[PropertyKeyConst::NAMESPACE] = this->namespaceData;
     INacosServiceFactory *factory = NacosFactoryFactory::getNacosFactory(configProps);
     ResourceGuard <INacosServiceFactory> _guardFactory(factory);
     NamingService *namingSvc = factory->CreateNamingService();

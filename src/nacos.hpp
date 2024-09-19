@@ -12,6 +12,7 @@ class NacosService {
     std::string ip;
     int port;
     std::string instanceId;
+    std::string namespaceData;
     bool ephemeral = true;
 
  public:
