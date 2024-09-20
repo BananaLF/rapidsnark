@@ -29,8 +29,6 @@ int main(int argc, char **argv) {
         zkeyFileNames[i] = argv[i + 2];
     }
 
-    NacosService nacosService;
-    nacosService.registerInstance();
     FullProver fullProver(zkeyFileNames, argc - 2);
     ProverAPI proverAPI(fullProver);
     Address addr(Ipv4::any(), Port(port));
@@ -48,6 +46,8 @@ int main(int argc, char **argv) {
     server.setHandler(router.handler());
     std::string serverReady("Server ready on port " + std::to_string(port) + "...");
     LOG_INFO(serverReady);
+    NacosService nacosService;
+    nacosService.registerInstance();
 
     try_create_temp_dir();
 
