@@ -1,9 +1,10 @@
 #include <iostream>
 #include "Nacos.h"
+#include <memory>
 
 
 using namespace std;
-
+using namespace nacos;
 
 class NacosService {
     std::shared_ptr<NamingService> namingSvc;

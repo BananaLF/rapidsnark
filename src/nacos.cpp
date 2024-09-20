@@ -1,9 +1,8 @@
 #include "nacos.hpp"
 #include <algorithm>
 #include <cctype>
-#include "Nacos.h"
 
-using namespace nacos;
+
 const char* ENABLE_RAPIDSNARK_NACOS="ENABLE_RAPIDSNARK_NACOS";
 const char* RAPIDSNARK_NACOS_SERVER="RAPIDSNARK_NACOS_SERVER";
 const char* RAPIDSNARK_NACOS_SERVICE_NAME="RAPIDSNARK_NACOS_SERVICE_NAME";
@@ -97,7 +96,7 @@ void NacosService::registerInstance() {
     std::cerr << "instanceId:" << this->instanceId << std::endl;
     std::cerr << "ephemeral:" << this->ephemeral << std::endl;
     std::cerr << "groupName:" << instance.groupName << std::endl;
-    namingSvc->registerInstance(serviceName, instance);
+    this->namingSvc->registerInstance(serviceName, instance);
 }
 
 bool stringToBool(const std::string& str) {
