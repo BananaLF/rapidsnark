@@ -89,6 +89,13 @@ void NacosService::registerInstance() {
     instance.ephemeral = this->ephemeral;
 
     NacosString serviceName = this->serviceName;
+    std::cerr << "nacosServer:" << this->nacosServer << std::endl;
+    std::cerr << "namespaceData:" << this->namespaceData << std::endl;
+    std::cerr << "clusterName:" << this->clusterName << std::endl;
+    std::cerr << "ip:" << this->ip << std::endl;
+    std::cerr << "port:" << this->port << std::endl;
+    std::cerr << "instanceId:" << this->instanceId << std::endl;
+    std::cerr << "ephemeral:" << this->ephemeral << std::endl;
     namingSvc->registerInstance(serviceName, instance);
 }
 
