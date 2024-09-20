@@ -87,6 +87,7 @@ void NacosService::registerInstance() {
     instance.port = this->port;
     instance.instanceId = this->instanceId;
     instance.ephemeral = this->ephemeral;
+    instance.groupName = "DEFAULT_GROUP";
 
     NacosString serviceName = this->serviceName;
     std::cerr << "nacosServer:" << this->nacosServer << std::endl;
@@ -96,6 +97,7 @@ void NacosService::registerInstance() {
     std::cerr << "port:" << this->port << std::endl;
     std::cerr << "instanceId:" << this->instanceId << std::endl;
     std::cerr << "ephemeral:" << this->ephemeral << std::endl;
+    std::cerr << "groupName:" << instance.groupName << std::endl;
     namingSvc->registerInstance(serviceName, instance);
 }
 
