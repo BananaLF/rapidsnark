@@ -1,10 +1,12 @@
 #include <iostream>
+#include "Nacos.h"
 
 
 using namespace std;
 
 
 class NacosService {
+    std::shared_ptr<NamingService> namingSvc;
     bool enableNacos = false;
     std::string nacosServer;
     std::string serviceName;

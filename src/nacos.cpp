@@ -79,8 +79,7 @@ void NacosService::registerInstance() {
     configProps[PropertyKeyConst::NAMESPACE] = this->namespaceData;
     INacosServiceFactory *factory = NacosFactoryFactory::getNacosFactory(configProps);
     ResourceGuard <INacosServiceFactory> _guardFactory(factory);
-    NamingService *namingSvc = factory->CreateNamingService();
-    ResourceGuard <NamingService> _serviceFactory(namingSvc);
+    this->namingSvc = std::shared_ptr<NamingService>(factory->CreateNamingService());
     Instance instance;
     instance.clusterName = this->clusterName;
     instance.ip = this->ip;
