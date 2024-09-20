@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    Logger::getInstance()->enableConsoleLogging();
+    Logger::getInstance()->enableFileLogging();
     Logger::getInstance()->updateLogLevel(LOG_LEVEL_INFO);
     LOG_INFO("Initializing server...");
     int port = std::stoi(argv[1]); // parse port

@@ -78,7 +78,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
     LOG_TRACE("FullProver::startProve begin");
     LOG_DEBUG(input);
     std::lock_guard<std::mutex> guard(mtx);
-    LOG_INFO("start prove");
+    LOG_INFO("start prove: "+proofId);
     if (status == busy) {
         LOG_INFO("start prov busy");
         return ErrorResponse("prover is busy");
@@ -90,7 +90,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
         LOG_ERROR(errString);
         return reduceResult;
     }
-    LOG_INFO("start prove success");
+    LOG_INFO("start prove success: "+proofId);
     if (zkHeaders.find(circuit) == zkHeaders.end()) {
         std::string errString = circuit + " is not exist in this prover server";
         return ErrorResponse(errString);    
@@ -156,7 +156,7 @@ void FullProver::thread_calculateProve() {
         FILE* pipe = popen(command.c_str(), "r");
         if (!pipe)
         {
-            std::cerr << "Couldn't start command." << std::endl;
+            LOG_ERROR("Couldn't start command.");
             throw std::invalid_argument( "Couldn't start witness command." );
         }
         while (fgets(buffer.data(), 128, pipe) != NULL) {
@@ -166,9 +166,9 @@ void FullProver::thread_calculateProve() {
         auto returnCode = pclose(pipe);
 
         if (returnCode != 0) { 
-            std::cerr << "circuit:" << circuit << " proof_id:"<< executingCircuit << " generate witness failed." << std::endl;
-            std::cerr << "result: " << result << std::endl;
-            std::cerr << "returnCode: " << returnCode << std::endl;
+            LOG_ERROR("circuit:" + circuit + " proof_id:" + executingCircuit + " generate witness failed.");
+            LOG_ERROR("result: " + result);
+            LOG_ERROR("returnCode: " + returnCode);
             std::ostringstream oss;
             oss << "generate witness failed. returnCode: " << returnCode << " result: " << result;
             std::string errMsg= oss.str();
