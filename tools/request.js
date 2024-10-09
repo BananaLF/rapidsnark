@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 if (process.argv.length < 3) {
     console.log("Usage: node request.js <input file> <circuit> [Optional: port]");
 }
-const input = fs.readFileSync(process.argv[2], "utf8");
+//const input = fs.readFileSync(process.argv[2], "utf8");
 const circuit = process.argv[3];
 // If get the port from the command line, use it, otherwise use the default port
 const port = process.argv[4] || 9080;
