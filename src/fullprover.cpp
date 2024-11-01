@@ -78,7 +78,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
     LOG_TRACE("FullProver::startProve begin");
     LOG_DEBUG(input);
     std::lock_guard<std::mutex> guard(mtx);
-    LOG_INFO("start prove:");
+    LOG_INFO("start prove:" + std::to_string(proofId) );
     LOG_INFO(proofId);
     if (status == busy) {
         LOG_INFO("start prov busy");
@@ -91,7 +91,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
         LOG_ERROR(errString);
         return reduceResult;
     }
-    LOG_INFO("start prove success: ");
+    LOG_INFO("start prove success: " + std::to_string(proofId));
     if (zkHeaders.find(circuit) == zkHeaders.end()) {
         std::string errString = circuit + " is not exist in this prover server";
         return ErrorResponse(errString);    
@@ -168,7 +168,7 @@ void FullProver::thread_calculateProve() {
 
         if (returnCode != 0) { 
             std::string background_err = "circuit:" + circuit + " proof_id:" + executingCircuit + " generate witness failed." + 
-            "\n returnCode: " + returnCode + "\n result: " + result;
+            "\n returnCode: " + std::to_string(returnCode) + "\n result: " + result;
             LOG_ERROR(background_err);
             std::ostringstream oss;
             oss << "generate witness failed. returnCode: " << returnCode << " result: " << result;
