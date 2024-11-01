@@ -78,7 +78,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
     LOG_TRACE("FullProver::startProve begin");
     LOG_DEBUG(input);
     std::lock_guard<std::mutex> guard(mtx);
-    LOG_INFO("start prove:" + std::to_string(proofId) );
+    LOG_INFO("start prove:");
     LOG_INFO(proofId);
     if (status == busy) {
         LOG_INFO("start prov busy");
@@ -91,7 +91,7 @@ json FullProver::startProve(std::string input, std::string circuit, std::string 
         LOG_ERROR(errString);
         return reduceResult;
     }
-    LOG_INFO("start prove success: " + std::to_string(proofId));
+    LOG_INFO("start prove success: ");
     if (zkHeaders.find(circuit) == zkHeaders.end()) {
         std::string errString = circuit + " is not exist in this prover server";
         return ErrorResponse(errString);    
