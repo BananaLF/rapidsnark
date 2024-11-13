@@ -6,13 +6,13 @@
 
 namespace fs = std::filesystem;
 
-const std::string TEMP_FILE_DIR = "/temp/rapidsnark/build/temp_proof/";
+const std::string TEMP_FILE_DIR = "/tmp/rapidsnark/build/temp_proof/";
 
 json reduce_temp_file() {
     try {
         // check directory is exist
         if (!fs::exists(TEMP_FILE_DIR) || !fs::is_directory(TEMP_FILE_DIR)) {
-             return ErrorResponse("prover server is wrong,beacause directory /temp/rapidsnark/build/temp_proof is not exist");
+             return ErrorResponse("prover server is wrong,beacause directory /tmp/rapidsnark/build/temp_proof is not exist");
         }
         std::vector<std::string> filenames;
         for (const auto& entry : fs::recursive_directory_iterator(TEMP_FILE_DIR)) {
@@ -43,11 +43,11 @@ void writ_temp_file(json data, std::string proofId) {
 
 void try_create_temp_dir() {
     try {
-        // create /temp/rapidsnark/build/temp_proof
+        // create /tmp/rapidsnark/build/temp_proof
         if (fs::create_directory(TEMP_FILE_DIR)) {
-            std::cout << "Directory /temp/rapidsnark/build/temp_proof created successfully: " << TEMP_FILE_DIR << std::endl;
+            std::cout << "Directory /tmp/rapidsnark/build/temp_proof created successfully: " << TEMP_FILE_DIR << std::endl;
         } else {
-            std::cout << "Directory /temp/rapidsnark/build/temp_proof already exists " << TEMP_FILE_DIR << std::endl;
+            std::cout << "Directory /tmp/rapidsnark/build/temp_proof already exists " << TEMP_FILE_DIR << std::endl;
         }
     } catch (const fs::filesystem_error& e) {
         std::cerr << "try_create_temp_dir Error: " << e.what() << std::endl;
