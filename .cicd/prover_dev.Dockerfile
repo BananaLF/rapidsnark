@@ -3,6 +3,7 @@ WORKDIR /root/rapidsnark
 
 RUN apt-get update && apt-get install -y libcurl4-openssl-dev zlib1g-dev
 RUN mkdir -p /root/rapidsnark/build
+RUN mkdir -p /tmp/rapidsnark/build
 RUN pwd
 RUN ls
 COPY ./artifacts/proverServer /root/rapidsnark/proverServer
