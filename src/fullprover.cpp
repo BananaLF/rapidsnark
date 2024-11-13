@@ -143,12 +143,12 @@ void FullProver::thread_calculateProve() {
         json j = json::parse(executingInput);
         std::string circuit = executingCircuit;
         
-        std::ofstream file("./build/input_"+ circuit +".json");
+        std::ofstream file("/temp/rapidsnark/build/input_"+ circuit +".json");
         file << j;
         file.close();
 
-        std::string witnessFile("./build/" + circuit + ".wtns");
-        std::string command("./build/" + circuit + " ./build/input_"+ circuit +".json " + witnessFile);
+        std::string witnessFile("/temp/rapidsnark/build/" + circuit + ".wtns");
+        std::string command("./build/" + circuit + " /temp/rapidsnark/build/input_"+ circuit +".json " + witnessFile);
         LOG_TRACE(command);
         std::array<char, 128> buffer;
         std::string result;
@@ -336,7 +336,7 @@ json FullProver::getStatus() {
 }
 
 json FullProver::getProof(std::string proofId) {
-    std::ifstream file("./build/temp_proof/" + proofId + ".json");
+    std::ifstream file("/temp/rapidsnark/build/temp_proof/" + proofId + ".json");
 
     if (!file.is_open()) {
         return ErrorResponse("can not find proofId: " + proofId);
