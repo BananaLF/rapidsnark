@@ -18,7 +18,8 @@ Compile Prover Server:
   script:
     - |
       apt-get update && apt-get install -y git build-essential cmake libgmp-dev libsodium-dev nasm curl m4 sudo libcurl4-openssl-dev zlib1g-dev 
-      cd nacos-sdk-cpp && cmake . && make && make install
+      cd nacos-sdk-cpp
+      cmake . && make && make install
       cd ..
       npm install
       git submodule init
