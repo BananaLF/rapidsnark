@@ -4,7 +4,7 @@
 #include "fullprover.hpp"
 #include "logger.hpp"
 #include "temp_file.hpp"
-#include "nacos.hpp"
+//#include "nacos.hpp"
 #include <filesystem>
 
 using namespace CPlusPlusLogging;
@@ -46,8 +46,8 @@ int main(int argc, char **argv) {
     server.setHandler(router.handler());
     std::string serverReady("Server ready on port " + std::to_string(port) + "...");
     LOG_INFO(serverReady);
-    NacosService nacosService;
-    nacosService.registerInstance();
+    // NacosService nacosService;
+    // nacosService.registerInstance();
 
     try_create_temp_dir();
 
