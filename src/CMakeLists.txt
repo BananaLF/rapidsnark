@@ -159,6 +159,35 @@ set_target_properties(rapidsnarkStaticFrFq PROPERTIES POSITION_INDEPENDENT_CODE 
 set_target_properties(rapidsnarkStaticFrFq PROPERTIES OUTPUT_NAME rapidsnark-fr-fq)
 
 add_executable(prover main_prover.cpp)
+
+include_directories(
+    ../depends/pistache/include
+    /usr/local/include/nacos/)
+
+set(LIB_SOURCES
+    proverapi.hpp
+    proverapi.cpp
+    fullprover.hpp
+    fullprover.cpp
+    response_util.hpp
+    response_util.cpp
+    temp_file.hpp
+    temp_file.cpp
+    nacos.cpp
+    nacos.hpp
+)
+add_executable(proverServer main_proofserver.cpp)
+
+set(CMAKE_PREFIX_PATH /usr/local/lib)
+
+target_link_libraries(proverServer
+    PRIVATE
+        pistache
+        nacos-cli
+    PRIVATE
+        -Wl,-rpath,/usr/local/lib
+)
+
 target_compile_definitions(prover PUBLIC -DFEATURE_BN254 -DG2_ENABLED)
 # target_include_directories(prover PUBLIC "/data/workspace/cliff/cryptography_cuda/src")
 target_link_libraries(prover rapidsnarkStatic)

@@ -8,6 +8,7 @@
 #include <iostream>
 
 
+using namespace CPlusPlusLogging;
 using namespace Pistache;
 using json = nlohmann::json;
 
