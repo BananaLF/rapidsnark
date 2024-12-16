@@ -9,12 +9,17 @@ include(cmake/platform.cmake)
 set(USE_ASM    ON CACHE BOOL "Use asm implementation for Fr and Fq")
 set(USE_OPENMP ON CACHE BOOL "Use OpenMP")
 set(G2_ENABLED OFF CACHE BOOL "enable G2 curve")
+OPTION(USE_CUDA "whether integrate with gpu" OFF) # Enabled by default
 
 if(G2_ENABLED)
     add_definitions(-DG2_ENABLED)
 endif()
 
-project(rapidsnark LANGUAGES CXX CUDA ASM)
+if(USE_CUDA)
+    project(rapidsnark LANGUAGES CXX CUDA ASM)
+else ()
+    project(rapidsnark LANGUAGES CXX ASM)
+endif ()
 
 
 

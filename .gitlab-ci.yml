@@ -1,0 +1,64 @@
+default:
+  tags:
+    - Global-shared
+    - Test
+
+stages:
+  - build
+
+Compile Prover Server:
+  variables:
+    KUBERNETES_CPU_REQUEST: 500m
+    KUBERNETES_CPU_LIMIT: '16'
+    KUBERNETES_MEMORY_REQUEST: 4Gi
+    KUBERNETES_MEMORY_LIMIT: 32Gi
+    DOCKERFILE_PATH: ""
+  image: office-registry-vpc.cn-hongkong.cr.aliyuncs.com/okbase/node:20.11.1-okg2
+  stage: build
+  script:
+    - |
+      apt-get update && apt-get install -y git build-essential cmake libgmp-dev libsodium-dev nasm curl m4 sudo libcurl4-openssl-dev zlib1g-dev 
+      cd nacos-sdk-cpp && cmake . && make && make install
+      cd ..
+      npm install
+      git submodule init
+      git submodule update
+      npm run task buildPistache
+      npm run task createFieldSources
+      npm run task buildProverServer
+      mkdir artifacts
+      cp ./build_nodejs/proverServer ./artifacts/proverServer
+      cp /usr/local/lib/libnacos-cli.so ./artifacts/libnacos-cli.so
+      cp /usr/local/lib/libpistache.so.0 ./artifacts/libpistache.so.0
+      cp /lib/x86_64-linux-gnu/libgomp.so.1 ./artifacts/libgomp.so.1
+      cp /lib/x86_64-linux-gnu/libgmp.so.10 ./artifacts/libgmp.so.10
+  artifacts:
+    paths:
+      - ./artifacts/
+
+
+Kaniko Build:
+  variables:
+    DOCKER_REGISTRY: office-registry-vpc.cn-hongkong.cr.aliyuncs.com
+    DOCKER_REGISTRY_AUTH: "$DEFAULT_DOCKER_REGISTRY_AUTH"
+    DOCKERFILE_PATH: ".cicd/prover_dev.Dockerfile"
+    IMAGE_SPACE: "okbase"
+    IMAGE_NAME: "prover-server"
+    IMAGE_TAG: "$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    BUILD_ARGS: "" # --build-arg foo1=bar1 --build-arg foo2=bar2"
+    BUILD_CONTEXT: "$CI_PROJECT_DIR"
+  stage: build
+  image: office-registry-vpc.cn-hongkong.cr.aliyuncs.com/okbase/kaniko-executor:debug-okg3
+  script:
+    - |
+      echo /kaniko/executor --ignore-path /busybox --context $BUILD_CONTEXT $BUILD_ARGS --dockerfile $DOCKERFILE_PATH --destination $DOCKER_REGISTRY/$IMAGE_SPACE/$IMAGE_NAME:$IMAGE_TAG --digest-file=digest-file.info
+    - /kaniko/executor --ignore-path /busybox --context $BUILD_CONTEXT $BUILD_ARGS --dockerfile $DOCKERFILE_PATH --destination $DOCKER_REGISTRY/$IMAGE_SPACE/$IMAGE_NAME:$IMAGE_TAG --digest-file=digest-file.info
+    - mkdir -p /workspace
+    - echo IMAGE_DIGEST=$(cat digest-file.info) >> .env
+  needs:
+    - job: Compile Prover Server
+  artifacts:
+    reports:
+      dotenv: .env
+
+

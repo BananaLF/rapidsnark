@@ -84,3 +84,4 @@ build/Makefile
 build/*.txt
 
 .vscode
+cmake-build-debug
