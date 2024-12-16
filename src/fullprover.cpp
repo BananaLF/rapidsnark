@@ -2,14 +2,22 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iostream>
+#include <filesystem>
 
 #include "fullprover.hpp"
 #include "fr.hpp"
 
 #include "logger.hpp"
 #include "wtns_utils.hpp"
+#include "response_util.hpp"
+#include "temp_file.hpp"
 
 using namespace CPlusPlusLogging;
+namespace fs = std::filesystem;
 
 std::string getfilename(std::string path)
 {
@@ -66,21 +74,38 @@ FullProver::~FullProver() {
     mpz_clear(altBbn128r);
 }
 
-void FullProver::startProve(std::string input, std::string circuit) {
+json FullProver::startProve(std::string input, std::string circuit, std::string proofId) {
     LOG_TRACE("FullProver::startProve begin");
     LOG_DEBUG(input);
     std::lock_guard<std::mutex> guard(mtx);
+    LOG_INFO("start prove:");
+    LOG_INFO(proofId);
+    if (status == busy) {
+        LOG_INFO("start prov busy");
+        return ErrorResponse("prover is busy");
+    }
+    json reduceResult = reduce_temp_file();
+    if (reduceResult["code"] == 1) {
+        LOG_ERROR("reduce_temp_file failed");
+        std::string errString = reduceResult.dump(4);
+        LOG_ERROR(errString);
+        return reduceResult;
+    }
+    LOG_INFO("start prove success: ");
+    if (zkHeaders.find(circuit) == zkHeaders.end()) {
+        std::string errString = circuit + " is not exist in this prover server";
+        return ErrorResponse(errString);    
+    }
     pendingInput = input;
     pendingCircuit = circuit;
-    if (status == busy) {
-        abort();
-    }
-    checkPending();
+    json result = checkPending(proofId);
     LOG_TRACE("FullProver::startProve end");
+    return result;
 }
 
-void FullProver::checkPending() {
+json FullProver::checkPending(std::string proofId) {
     LOG_TRACE("FullProver::checkPending begin");
+    json result;
     if (status != busy) {
         std::string input = pendingInput;
         std::string circuit = pendingCircuit;
@@ -91,13 +116,22 @@ void FullProver::checkPending() {
             pendingInput = "";
             pendingCircuit = "";
             errString = "";
+            executingProofId = proofId;
             canceled = false;
             proof = nlohmann::detail::value_t::null;
             std::thread th(&FullProver::thread_calculateProve, this);
             th.detach();
+            result = SuccessStartPove(proofId);
+            LOG_TRACE("FullProver::checkPending end");
+        } else {
+            LOG_TRACE("FullProver::checkPending end");
+            result = ErrorResponse("input and circuit is empty");
         }
+    } else {
+        LOG_TRACE("FullProver::checkPending end");
+        result = ErrorResponse("checkPending prover is busy");
     }
-    LOG_TRACE("FullProver::checkPending end");
+    return result;
 }
 
 void FullProver::thread_calculateProve() {
@@ -109,12 +143,12 @@ void FullProver::thread_calculateProve() {
         json j = json::parse(executingInput);
         std::string circuit = executingCircuit;
         
-        std::ofstream file("./build/input_"+ circuit +".json");
+        std::ofstream file("/tmp/rapidsnark/build/input_"+ circuit +".json");
         file << j;
         file.close();
 
-        std::string witnessFile("./build/" + circuit + ".wtns");
-        std::string command("./build/" + circuit + " ./build/input_"+ circuit +".json " + witnessFile);
+        std::string witnessFile("/tmp/rapidsnark/build/" + circuit + ".wtns");
+        std::string command("./build/" + circuit + " /tmp/rapidsnark/build/input_"+ circuit +".json " + witnessFile);
         LOG_TRACE(command);
         std::array<char, 128> buffer;
         std::string result;
@@ -123,7 +157,8 @@ void FullProver::thread_calculateProve() {
         FILE* pipe = popen(command.c_str(), "r");
         if (!pipe)
         {
-            std::cerr << "Couldn't start command." << std::endl;
+            LOG_ERROR("Couldn't start command.");
+            throw std::invalid_argument( "Couldn't start witness command." );
         }
         while (fgets(buffer.data(), 128, pipe) != NULL) {
             // std::cout << "Reading..." << std::endl;
@@ -131,8 +166,16 @@ void FullProver::thread_calculateProve() {
         }
         auto returnCode = pclose(pipe);
 
-        std::cout << result << std::endl;
-        std::cout << returnCode << std::endl;
+        if (returnCode != 0) { 
+            std::string background_err = "circuit:" + circuit + " proof_id:" + executingCircuit + " generate witness failed." + 
+            "\n returnCode: " + std::to_string(returnCode) + "\n result: " + result;
+            LOG_ERROR(background_err);
+            std::ostringstream oss;
+            oss << "generate witness failed. returnCode: " << returnCode << " result: " << result;
+            std::string errMsg= oss.str();
+            throw std::invalid_argument(errMsg);
+        }
+        
         
         // Load witness
         auto wtns = BinFileUtils::openExisting(witnessFile, "wtns", 2);
@@ -159,13 +202,67 @@ void FullProver::thread_calculateProve() {
         }
        
 
+        // wirte proofResult.json
+        json proofResult = SuccessGenerateProof(executingProofId,proof,pubData);   
+        writ_temp_file(proofResult,executingProofId);
+
         calcFinished();
-    } catch (std::runtime_error e) {
+    } catch (const std::invalid_argument& e) {  // 捕获 std::invalid_argument
+        LOG_TRACE("invalid_argument catch get runtime err");
         if (!isCanceled()) {
+            LOG_TRACE("no cancel");
             errString = e.what();
+            json proofResult = ErrorGenerateProof(executingProofId,errString);
+            writ_temp_file(proofResult,executingProofId);
         }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
         calcFinished();
-    } 
+    } catch (std::runtime_error& e) {
+        LOG_TRACE("runtime_error catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            errString = e.what();
+            json proofResult = ErrorGenerateProof(executingProofId,errString);
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
+        calcFinished();
+    } catch (const json::parse_error& e) {
+        LOG_TRACE("parse_error catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            errString = e.what();
+            json proofResult = ErrorGenerateProof(executingProofId,errString);
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
+        calcFinished();
+     } catch (const std::exception& e) {
+        LOG_TRACE("exception catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            errString = e.what();
+            json proofResult = ErrorGenerateProof(executingProofId,"exception"+errString);
+            proofResult["code"] = 2;//must be handle it
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE(e.what());
+        LOG_TRACE("catch end");
+        calcFinished();
+    } catch (...) {
+       LOG_TRACE("exception catch get runtime err");
+        if (!isCanceled()) {
+            LOG_TRACE("no cancel");
+            json proofResult = ErrorGenerateProof(executingProofId,"occur unknown error");
+            proofResult["code"] = 2;//must be handle it
+            writ_temp_file(proofResult,executingProofId);
+        }
+        LOG_TRACE("catch end");
+        calcFinished();
+    }
 
     LOG_TRACE("FullProver::thread_calculateProve end");
 }
@@ -186,7 +283,7 @@ void FullProver::calcFinished() {
     }
     canceled = false;
     executingInput = "";
-    checkPending();
+    checkPending(executingProofId);
     LOG_TRACE("FullProver::calcFinished end");
 }
 
@@ -218,23 +315,36 @@ json FullProver::getStatus() {
     json st;
     if (status == ready) {
         LOG_TRACE("ready");
-        st["status"] = "ready";
+        st = SuccessStatus("ready");
     } else if (status == aborted) {
         LOG_TRACE("aborted");
-        st["status"] = "aborted";
+        st = SuccessStatus("aborted");
     } else if (status == failed) {
         LOG_TRACE("failed");
-        st["status"] = "failed";
-        st["error"] = errString;
+        st = ErrorGenerateProof(executingProofId,errString);
     } else if (status == success) {
         LOG_TRACE("success");
+        st = SuccessGenerateProof(executingProofId,proof,pubData);
         st["status"] = "success";
-        st["proof"] = proof.dump();
-        st["pubData"] = pubData.dump();
     } else if (status == busy) {
         LOG_TRACE("busy");
-        st["status"] = "busy";
+        st = SuccessStatus("busy");
+        st["current_proof"] = executingProofId;
     }
     LOG_TRACE("FullProver::getStatus end");
     return st;
+}
+
+json FullProver::getProof(std::string proofId) {
+    std::ifstream file("/tmp/rapidsnark/build/temp_proof/" + proofId + ".json");
+
+    if (!file.is_open()) {
+        return ErrorResponse("can not find proofId: " + proofId);
+    }
+
+    json result;
+    file >> result; 
+    file.close();
+    // reduce_temp_proof();
+    return result;
 }

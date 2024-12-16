@@ -17,6 +17,7 @@ class FullProver {
 
     std::string pendingInput;
     std::string executingInput;
+    std::string executingProofId;
     std::string pendingCircuit;
     std::string executingCircuit;
 
@@ -35,17 +36,18 @@ class FullProver {
     bool isCanceled();
     void calcFinished();
     void thread_calculateProve();
-    void checkPending();
+    json checkPending(std::string proofId);
 
 
 
 public: 
     FullProver(std::string zkeyFileNames[], int size);
     ~FullProver();
-    void startProve(std::string input, std::string circuit);
+    json startProve(std::string input, std::string circuit, std::string proofId);
     void abort();
     json getStatus();
     std::string &getErrString() { return errString; };
+    json getProof(std::string proofId);
 
 
 };

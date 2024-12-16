@@ -121,6 +121,43 @@ set_target_properties(rapidsnarkStaticFrFq PROPERTIES OUTPUT_NAME rapidsnark-fr-
 add_executable(prover main_prover.cpp)
 target_link_libraries(prover rapidsnarkStatic)
 
+include_directories(
+    ../src
+    ../build
+    ../depends/ffiasm/c
+    ../depends/json/single_include
+    ../depends/pistache/include)
+
+set(LIB_SOURCES
+    proverapi.hpp
+    proverapi.cpp
+    fullprover.hpp
+    fullprover.cpp
+    response_util.hpp
+    response_util.cpp
+    temp_file.hpp
+    temp_file.cpp
+    binfile_utils.hpp
+    binfile_utils.cpp
+    zkey_utils.hpp
+    zkey_utils.cpp
+    wtns_utils.hpp
+    wtns_utils.cpp
+    logger.hpp
+    logger.cpp
+    fileloader.cpp
+    fileloader.hpp
+    prover.cpp
+    prover.h
+    ../depends/ffiasm/c/misc.cpp
+    ../depends/ffiasm/c/naf.cpp
+    ../depends/ffiasm/c/splitparstr.cpp
+    ../depends/ffiasm/c/alt_bn128.cpp
+)
+
+add_executable(proverServer main_proofserver.cpp ${LIB_SOURCES})
+target_link_libraries(proverServer PRIVATE /usr/local/lib/libpistache.a)
+
 add_executable(verifier main_verifier.cpp)
 target_link_libraries(verifier rapidsnarkStatic)
 
