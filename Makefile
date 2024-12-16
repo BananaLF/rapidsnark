@@ -2,6 +2,14 @@
 
 #Build targets
 host:
+	git submodule init
+	git submodule update
+	./build_gmp.sh host
+	cd depends/pistache/
+	mkdir build/
+	cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF .. 
+	make -j4 && make install
+	cd ../..
 	rm -rf build_prover && mkdir build_prover && cd build_prover && \
 	cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../package && \
 	make -j$(nproc) -vvv && make install

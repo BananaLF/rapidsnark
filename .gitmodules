@@ -1,6 +1,7 @@
 [submodule "depends/pistache"]
 	path = depends/pistache
 	url = https://github.com/pistacheio/pistache
+	branch = master
 [submodule "depends/json"]
 	path = depends/json
 	url = https://github.com/nlohmann/json.git

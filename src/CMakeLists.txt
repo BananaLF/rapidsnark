@@ -1,5 +1,8 @@
 link_libraries(${GMP_LIB})
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON
+
 add_definitions(${GMP_DEFINIONS})
 
 if(USE_ASM)
